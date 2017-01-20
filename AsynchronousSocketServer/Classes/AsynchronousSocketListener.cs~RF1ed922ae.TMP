@@ -1,0 +1,26 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace AsynchronousSocketServer.Classes
+{
+    /// <summary>
+    /// Class which listens for a Asynchronous socket client, then hands the message to a handler
+    /// </summary>
+    class AsynchronousSocketListener
+    {
+        public void StartListening()
+        {
+            byte[] bytes = new Byte[1024];
+
+            //Listens on the local endpoint
+            IPHostEntry ipHostInfo = Dns.Resolve(Dns.GetHostName());
+            IPAddress ipAddress = ipHostInfo.AddressList[0];
+            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
+        }
+
+
+    }
+}
