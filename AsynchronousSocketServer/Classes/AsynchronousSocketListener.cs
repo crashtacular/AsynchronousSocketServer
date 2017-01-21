@@ -56,7 +56,11 @@ namespace AsynchronousSocketServer.Classes
             }
         }
 
-
+        /// <summary>
+        /// Accepts the callback when a new connection is received
+        /// Spins off a handler to received the incoming messages
+        /// </summary>
+        /// <param name="result"></param>
         public void AcceptCallBack(IAsyncResult result)
         {
             socketaccepted.Set();
@@ -64,7 +68,20 @@ namespace AsynchronousSocketServer.Classes
             // Get the socket that handles the client request.
             Socket listener = (Socket)result.AsyncState;
             Socket handler = listener.EndAccept(result);
+
+            ConnectionState state = new ConnectionState();
+            state.Connection = handler;
+            handler.BeginReceive(state.buffer, 0, ConnectionState.BufferSize, 0, new AsyncCallback(ReadCallBack), state);
+
         }
+
+
+        public void ReadCallBack(IAsyncResult result)
+        {
+
+        }
+
+
 
     }
 }

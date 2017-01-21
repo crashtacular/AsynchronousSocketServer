@@ -14,9 +14,9 @@ namespace AsynchronousSocketServer.Classes
     {
         public Socket Connection = null;
 
-        public const int BufferSizw = 1024;
+        public const int BufferSize = 1024;
 
-        public byte[] buffer = new byte[BufferSizw];
+        public byte[] buffer = new byte[BufferSize];
 
         public StringBuilder responsebuilder = new StringBuilder();
 
