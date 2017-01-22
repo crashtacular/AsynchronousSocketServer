@@ -5,7 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AsynchronousSocketServer
+
+namespace TestServer
 {
     class Program
     {
@@ -25,4 +26,5 @@ namespace AsynchronousSocketServer
             return input;
         }
     }
+
 }
