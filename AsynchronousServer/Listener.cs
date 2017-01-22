@@ -34,6 +34,35 @@ namespace AsynchronousServer
         /// </summary>
         public void StartListening()
         {
+            _listeningthread = new Thread(Listen);
+            _listeningthread.Start();
+        }
+
+        /// <summary>
+        /// Stop Listening for new connections, but will handle the ones already connected
+        /// </summary>
+        public void StopListening()
+        {
+            _keepRunning = false;
+        }
+
+        public void SetPort(int port)
+        {
+            _port = port;
+        }
+
+        /// <summary>
+        /// Sets the string which will be checked for end of message
+        /// </summary>
+        /// <param name="eof"></param>
+        public void SetEndingString(string eof)
+        {
+            EOF = eof;
+        }
+        #endregion
+
+        private void Listen()
+        {
             byte[] bytes = new Byte[1024];
 
             //Listens on the local endpoint
@@ -42,8 +71,8 @@ namespace AsynchronousServer
 
 
             IPAddress ipAddress = (from ip in ipHostInfo.AddressList
-                                  where ip.AddressFamily == AddressFamily.InterNetwork
-                                  select ip).FirstOrDefault();
+                                   where ip.AddressFamily == AddressFamily.InterNetwork
+                                   select ip).FirstOrDefault();
             IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
 
             Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -72,31 +101,8 @@ namespace AsynchronousServer
             {
                 Console.WriteLine(e.ToString());
             }
-        }
 
-        /// <summary>
-        /// Stop Listening for new connections, but will handle the ones already connected
-        /// </summary>
-        public void StopListening()
-        {
-            _keepRunning = false;
         }
-
-        public void SetPort(int port)
-        {
-            _port = port;
-        }
-
-        /// <summary>
-        /// Sets the string which will be checked for end of message
-        /// </summary>
-        /// <param name="eof"></param>
-        public void SetEndingString(string eof)
-        {
-            EOF = eof;
-        }
-        #endregion
-
 
         /// <summary>
         /// Accepts the callback when a new connection is received
