@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AsynchronousSocketServer.Classes
+namespace AsynchronousServer
 {
     /// <summary>
     /// Contains the state of the various connections between the server and the clients
@@ -18,7 +18,7 @@ namespace AsynchronousSocketServer.Classes
 
         public byte[] buffer = new byte[BufferSize];
 
-        public StringBuilder responsebuilder = new StringBuilder();
+        public StringBuilder stringbuilder = new StringBuilder();
 
     }
 }
