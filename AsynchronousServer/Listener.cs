@@ -20,6 +20,12 @@ namespace AsynchronousServer
 
         //End of Message string, default value
         private string EOF = ";";
+        private IMessageHandler _messagehandler;
+
+        public Listener(IMessageHandler handler)
+        {
+            _messagehandler = handler;
+        }
 
         public void StartListening()
         {
@@ -64,7 +70,7 @@ namespace AsynchronousServer
         /// Spins off a handler to received the incoming messages
         /// </summary>
         /// <param name="result"></param>
-        public void AcceptCallBack(IAsyncResult result)
+        private void AcceptCallBack(IAsyncResult result)
         {
             socketaccepted.Set();
 
@@ -83,7 +89,7 @@ namespace AsynchronousServer
         /// Recursively Called until the entire message is handled
         /// </summary>
         /// <param name="result"></param>
-        public void ReadCallback(IAsyncResult result)
+        private void ReadCallback(IAsyncResult result)
         {
             ConnectionState state = (ConnectionState)result.AsyncState;
             Socket handler = state.Connection;
@@ -101,6 +107,7 @@ namespace AsynchronousServer
                 content = state.stringbuilder.ToString();
                 if (content.IndexOf(EOF) > -1)
                 {
+                    Send(handler,_messagehandler.HandleMessage(content));
                 }
                 else
                 {
@@ -108,6 +115,37 @@ namespace AsynchronousServer
                     handler.BeginReceive(state.buffer, 0, ConnectionState.BufferSize, 0,
                     new AsyncCallback(ReadCallback), state);
                 }
+            }
+        }
+
+        private void Send(Socket handler, String message)
+        {
+            // Convert the string data to byte data using ASCII encoding.
+            byte[] byteData = Encoding.ASCII.GetBytes(message);
+
+            // Begin sending the data to the remote device.
+            handler.BeginSend(byteData, 0, byteData.Length, 0,
+                new AsyncCallback(SendCallback), handler);
+        }
+
+        private void SendCallback(IAsyncResult ar)
+        {
+            try
+            {
+                // Retrieve the socket from the state object.
+                Socket handler = (Socket)ar.AsyncState;
+
+                // Complete sending the data to the remote device.
+                int bytesSent = handler.EndSend(ar);
+                Console.WriteLine("Sent {0} bytes to client.", bytesSent);
+
+                handler.Shutdown(SocketShutdown.Both);
+                handler.Close();
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
             }
         }
 
