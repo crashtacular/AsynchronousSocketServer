@@ -14,26 +14,36 @@ namespace AsynchronousServer
     /// </summary>
     public class Listener
     {
-
-        public ManualResetEvent socketaccepted = new ManualResetEvent(false);
-        public bool KeepRunning = true;
-
         //End of Message string, default value
         private string EOF = ";";
         private IMessageHandler _messagehandler;
+        private ManualResetEvent _socketaccepted = new ManualResetEvent(false);
+        private bool _keepRunning = true;
+        private int _port = 11000;
 
+        private Thread _listeningthread;
+
+        #region public methods
         public Listener(IMessageHandler handler)
         {
             _messagehandler = handler;
         }
 
+        /// <summary>
+        /// Start the Listener Listening for new connections
+        /// </summary>
         public void StartListening()
         {
             byte[] bytes = new Byte[1024];
 
             //Listens on the local endpoint
             IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
+
+
+
+            IPAddress ipAddress = (from ip in ipHostInfo.AddressList
+                                  where ip.AddressFamily == AddressFamily.InterNetwork
+                                  select ip).FirstOrDefault();
             IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
 
             Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -41,21 +51,20 @@ namespace AsynchronousServer
             try
             {
 
-
                 listener.Bind(localEndPoint);
-                //Accept Max 100 listeners
+                //Accept Max 100 backlog
                 listener.Listen(100);
 
-                while (KeepRunning)
+                while (_keepRunning)
                 {
                     //reset event to nonsignaled state
-                    socketaccepted.Reset();
+                    _socketaccepted.Reset();
 
                     // Start an asynchronous socket to listen for connections.
                     Console.WriteLine("Waiting for a connection...");
                     listener.BeginAccept(new AsyncCallback(AcceptCallBack), listener);
 
-                    socketaccepted.WaitOne();
+                    _socketaccepted.WaitOne();
                 }
 
             }
@@ -66,13 +75,37 @@ namespace AsynchronousServer
         }
 
         /// <summary>
+        /// Stop Listening for new connections, but will handle the ones already connected
+        /// </summary>
+        public void StopListening()
+        {
+            _keepRunning = false;
+        }
+
+        public void SetPort(int port)
+        {
+            _port = port;
+        }
+
+        /// <summary>
+        /// Sets the string which will be checked for end of message
+        /// </summary>
+        /// <param name="eof"></param>
+        public void SetEndingString(string eof)
+        {
+            EOF = eof;
+        }
+        #endregion
+
+
+        /// <summary>
         /// Accepts the callback when a new connection is received
         /// Spins off a handler to received the incoming messages
         /// </summary>
         /// <param name="result"></param>
         private void AcceptCallBack(IAsyncResult result)
         {
-            socketaccepted.Set();
+            _socketaccepted.Set();
 
             // Get the socket that handles the client request.
             Socket listener = (Socket)result.AsyncState;
@@ -149,14 +182,7 @@ namespace AsynchronousServer
             }
         }
 
-        /// <summary>
-        /// Sets the string which will be checked for end of message
-        /// </summary>
-        /// <param name="eof"></param>
-        public void SetEndingString(string eof)
-        {
-            EOF = eof;
-        }
+
 
     }
 }
